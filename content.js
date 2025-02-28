@@ -2,8 +2,8 @@
 function debounce(func, delay) {
     let timeout;
     return function (...args) {
-      clearTimeout(timeout);
-      timeout = setTimeout(() => func.apply(this, args), delay);
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), delay);
     };
 }
 
@@ -12,7 +12,7 @@ function extractEmails() {
     console.log("Extracting emails...");
 
     let emails = document.querySelectorAll("div.adn"); // Email thread container
-    let subject = document.querySelector("h2.hP"); // Subject line
+    let subject = document.querySelector("h2.hP") || document.querySelector('[data-legacy-thread-id]'); // Subject line
     let emailData = {};
 
     if (!emails.length) {
@@ -21,25 +21,35 @@ function extractEmails() {
     }
 
     emails.forEach((email, index) => {
-        let senderNode = email.querySelector(".gD");
-        let sender = senderNode ? senderNode.innerText : "Unknown Sender";
+        try {
+            let senderNode = email.querySelector(".gD");
+            let sender = senderNode ? senderNode.innerText : "Unknown Sender";
 
-        let bodyNode = email.querySelector("div.a3s"); // Email body
-        let bodyText = bodyNode ? bodyNode.innerText.trim() : "[No body content]";
+            let bodyNode = email.querySelector("div.a3s"); // Email body
+            let bodyText = bodyNode?.innerText.trim() || "[No body content]";
 
-        let timeNode = email.querySelector(".gH .gK"); // Email time
-        let emailTime = timeNode ? timeNode.innerText : "Unknown Time";
+            let timeNode = email.querySelector(".gH .gK"); // Email time
+            let emailTime = timeNode?.innerText || "Unknown Time";
 
-        emailData[index] = {
-            subject: subject ? subject.innerText : "No Subject",
-            sender: sender,
-            time: emailTime,
-            body: bodyText,
-        };
+            emailData[index] = {
+                subject: subject?.innerText || "No Subject",
+                sender: sender,
+                time: emailTime,
+                body: bodyText,
+            };
+        } catch (err) {
+            console.error(`Error processing email at index ${index}:`, err);
+        }
     });
 
     console.log("Extracted Email Data:", emailData);
-    chrome.storage.local.set({ emailThread: emailData });
+
+    // Save extracted emails without overwriting existing data
+    chrome.storage.local.get("emailThread", (data) => {
+        let existingData = data.emailThread || {};
+        let updatedData = { ...existingData, ...emailData };
+        chrome.storage.local.set({ emailThread: updatedData });
+    });
 }
 
 // Debounced version of extractEmails
@@ -54,16 +64,23 @@ window.addEventListener("load", () => {
 // Use MutationObserver to detect changes in the email thread container
 const observer = new MutationObserver(debouncedExtractEmails);
 
-function startObserving() {
-    let checkContainer = setInterval(() => {
+function waitForEmailContainer(callback) {
+    let attempts = 0;
+    let maxAttempts = 10;
+    let interval = setInterval(() => {
         let emailContainer = document.querySelector("div.aeF");
-        if (emailContainer) {
-            console.log("Email container found, starting observer...");
-            observer.observe(emailContainer, { childList: true, subtree: true });
-            clearInterval(checkContainer);
+        if (emailContainer || attempts >= maxAttempts) {
+            clearInterval(interval);
+            if (emailContainer) {
+                console.log("Email container found, starting observer...");
+                observer.observe(emailContainer, { childList: true, subtree: true });
+            } else {
+                console.warn("Email container not found after multiple attempts.");
+            }
         }
+        attempts++;
     }, 1000);
 }
 
-// Start observing with an interval to ensure the container exists
-setTimeout(startObserving, 5000);
+// Start observing when the email container is available
+setTimeout(() => waitForEmailContainer(() => {}), 5000);
