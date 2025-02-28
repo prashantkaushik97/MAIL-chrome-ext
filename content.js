@@ -9,7 +9,7 @@ function debounce(func, delay) {
 
 // Function to extract email threads
 function extractEmails() {
-    console.log("Extracting emails...");
+    // console.log("Extracting emails...");
 
     let emails = document.querySelectorAll("div.adn"); // Email thread container
     let subject = document.querySelector("h2.hP") || document.querySelector('[data-legacy-thread-id]'); // Subject line
@@ -42,14 +42,11 @@ function extractEmails() {
         }
     });
 
-    console.log("Extracted Email Data:", emailData);
+    // console.log("Extracted Email Data:", emailData);
 
     // Save extracted emails without overwriting existing data
-    chrome.storage.local.get("emailThread", (data) => {
-        let existingData = data.emailThread || {};
-        let updatedData = { ...existingData, ...emailData };
-        chrome.storage.local.set({ emailThread: updatedData });
-    });
+    chrome.storage.local.set({ emailThread: emailData });
+
 }
 
 // Debounced version of extractEmails
@@ -57,7 +54,7 @@ const debouncedExtractEmails = debounce(extractEmails, 1000);
 
 // Run the function when Gmail loads
 window.addEventListener("load", () => {
-    console.log("Gmail Email Reader Loaded");
+    // console.log("Gmail Email Reader Loaded");
     setTimeout(extractEmails, 3000); // Give Gmail time to render
 });
 
@@ -72,7 +69,7 @@ function waitForEmailContainer(callback) {
         if (emailContainer || attempts >= maxAttempts) {
             clearInterval(interval);
             if (emailContainer) {
-                console.log("Email container found, starting observer...");
+                // console.log("Email container found, starting observer...");
                 observer.observe(emailContainer, { childList: true, subtree: true });
             } else {
                 console.warn("Email container not found after multiple attempts.");
