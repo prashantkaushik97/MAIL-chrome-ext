@@ -3,7 +3,13 @@
     "name": "Gmail Email Reader",
     "version": "1.0",
     "description": "Reads subject and body of opened emails in Gmail",
-    "permissions": ["storage", "activeTab"],
+    "permissions": [
+        "activeTab",
+        "storage",
+        "scripting"
+      ],
+      
+      
     "host_permissions": ["https://mail.google.com/*"],
     "action": {
       "default_popup": "popup.html"
