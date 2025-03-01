@@ -1,12 +1,27 @@
-
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Email Reader</title>
+  <link rel="stylesheet" href="popup.css">
   <script src="popup.js" defer></script>
 </head>
 <body>
-  <h2>Gmail Email Details</h2>
-  <div id="emailContainer"></div>
+  <div class="container">
+    <h2>Email Reader</h2>
+
+    <!-- Show Emails Button -->
+    <button id="toggleEmails" class="toggle-btn">📩 Show Emails</button>
+
+    <!-- Email Container (Hidden by Default) -->
+    <div id="emailContainer" class="hidden"></div>
+
+    <!-- Reply Section -->
+    <div class="reply-section">
+      <button id="generateReply" class="reply-btn">✍️ Generate Reply</button>
+      <div id="replyContainer"></div>
+    </div>
+  </div>
 </body>
 </html>
